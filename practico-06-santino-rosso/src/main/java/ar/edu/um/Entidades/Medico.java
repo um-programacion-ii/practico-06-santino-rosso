@@ -19,4 +19,5 @@ public class Medico {
     private List<ObraSocial> obrasSocialesAceptadas;
     private Boolean particular;
     private boolean disponible;
+    private boolean pacienteEsperando;
 }

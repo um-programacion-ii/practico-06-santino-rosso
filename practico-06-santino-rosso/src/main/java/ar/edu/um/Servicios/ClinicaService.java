@@ -69,6 +69,7 @@ public class ClinicaService {
             while (!medico.isDisponible()){
                 try {
                     medico.wait();
+                    medico.setPacienteEsperando(true);
                 } catch (InterruptedException e) {
                     throw new RuntimeException("Error al esperar por el médico.", e);
                 }
@@ -91,7 +92,9 @@ public class ClinicaService {
                gestionTurnoService.terminarTurno(turno);
                Medico medico = turno.getMedico();
                medico.setDisponible(true);
-               medico.notifyAll();
+               if(medico.isPacienteEsperando()){
+                   medico.notifyAll();
+               }
            }
        } else {
            throw new TurnoIniciadoException("El turno nunca empezo");

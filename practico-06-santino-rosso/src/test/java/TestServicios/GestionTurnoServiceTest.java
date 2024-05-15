@@ -20,7 +20,7 @@ public class GestionTurnoServiceTest {
     Turno mockTurno;
 
     @BeforeEach
-    public void preparacion() {
+    void preparacion() {
         this.mockMedico = mock(Medico.class);
         this.mockEspecialidad = mock(Especialidad.class);
         when(this.mockEspecialidad.getNombre()).thenReturn("Odontología");
@@ -38,7 +38,7 @@ public class GestionTurnoServiceTest {
         List<ObraSocial> obraSocialesAceptadas = new ArrayList<>();
         obraSocialesAceptadas.add(obraSocial1);
         obraSocialesAceptadas.add(obraSocial2);
-        Medico medico = new Medico(32914986,"Jorge", "Rodriguez",especialidad, obraSocialesAceptadas,true,true);
+        Medico medico = new Medico(32914986,"Jorge", "Rodriguez",especialidad, obraSocialesAceptadas,true,true,false);
         Paciente paciente = new Paciente(45698712,"Alvaro","Silvado",obraSocial1, null, null);
 
         Turno turno = this.gestionTurnoService.crearTurno(medico, paciente, true);

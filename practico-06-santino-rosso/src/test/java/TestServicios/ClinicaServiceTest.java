@@ -22,7 +22,7 @@ public class ClinicaServiceTest {
     void testPedirTurnoMedicosParticulares() {
         Paciente paciente = new Paciente();
         Especialidad especialidad = new Especialidad("Odontología");
-        Medico medico = new Medico(64694,"jorge","rodriguez",especialidad,null,true,true);
+        Medico medico = new Medico(64694,"jorge","rodriguez",especialidad,null,true,true,false);
 
         ClinicaDao clinicaDao = ClinicaDao.getInstance();
         clinicaDao.guardarMedico(medico);
@@ -51,7 +51,7 @@ public class ClinicaServiceTest {
         List<ObraSocial> obrasSociales = new ArrayList<>();
         obrasSociales.add(obraSocial1);
         Especialidad especialidad = new Especialidad("Odontología");
-        Medico medico = new Medico(64694,"jorge","rodriguez",especialidad,obrasSociales,true,true);
+        Medico medico = new Medico(64694,"jorge","rodriguez",especialidad,obrasSociales,true,true,false);
 
         ClinicaDao clinicaDao = ClinicaDao.getInstance();
         clinicaDao.guardarMedico(medico);
