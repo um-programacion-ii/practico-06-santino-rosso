@@ -39,4 +39,10 @@ public class PacienteServiceTest {
 
         System.setIn(System.in);
     }
+
+    @Test
+    void testRun(){
+
+
+    }
 }

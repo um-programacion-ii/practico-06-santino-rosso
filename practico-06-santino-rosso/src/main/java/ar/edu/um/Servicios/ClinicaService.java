@@ -56,7 +56,7 @@ public class ClinicaService {
             throw new TurnoNoCreadoException("No se creo el turno");
         }
         this.clinicaDao.guardarTurnoPaciente(paciente,turnoNuevo);
-        System.out.println("Se te asigno un turno con el medico: " + turnoNuevo.getMedico());
+        System.out.println("Se te asigno un turno con el medico: " + turnoNuevo.getMedico().getNombre() + " " +turnoNuevo.getMedico().getApellido());
         return turnoNuevo;
     }
 

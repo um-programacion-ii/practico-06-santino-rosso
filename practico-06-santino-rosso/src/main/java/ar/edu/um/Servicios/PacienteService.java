@@ -44,7 +44,7 @@ public class PacienteService implements Runnable{
             for (Map.Entry<Medicamento, Integer> entry : medicamentosComprados.entrySet()) {
                 Medicamento medicamento = entry.getKey();
                 Integer cantidad = entry.getValue();
-                System.out.println("Medicamento: " + medicamento + ", Cantidad: " + cantidad);
+                System.out.println("Medicamento: " + medicamento.getNombreComercial() + ", Cantidad: " + cantidad);
             }
         }
     }

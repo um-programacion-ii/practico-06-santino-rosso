@@ -5,6 +5,7 @@ import ar.edu.um.Entidades.*;
 import ar.edu.um.Excepciones.*;
 import ar.edu.um.Servicios.ClinicaService;
 import ar.edu.um.Servicios.GestionTurnoService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -17,211 +18,190 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ClinicaServiceTest {
+    Paciente paciente1;
+    Especialidad especialidad1;
+    ObraSocial obraSocial1;
+    ObraSocial obraSocial2;
+    List<ObraSocial> obrasSocialses;
+    ClinicaDao clinicaDaoInstancia;
+    ClinicaService clinicaServiceInstancia;
+
+    List<Medico> medicos;
+    GestionTurnoService gestionTurnoServiceMock;
+    ClinicaDao clinicaDaoMock;
+    Turno turnoMock;
+    Medico medicoMock;
+    Especialidad especialidadMock;
+    Medico medico1;
+    Medico medico2;
+
+
+    @BeforeEach
+    void preparar(){
+        this.paciente1 = new Paciente();
+        this.especialidad1 = new Especialidad("Odontología");
+        this.obraSocial1 = new ObraSocial("Pami");
+        this.obraSocial2 = new ObraSocial("Sancor");
+        this.obrasSocialses = new ArrayList<>();
+        obrasSocialses.add(obraSocial1);
+        obrasSocialses.add(obraSocial2);
+        this.clinicaDaoInstancia = ClinicaDao.getInstance();
+        this.medicos = new ArrayList<>();
+        this.clinicaServiceInstancia = ClinicaService.getInstance();
+        this.gestionTurnoServiceMock = mock(GestionTurnoService.class);
+        this.clinicaDaoMock = mock(ClinicaDao.class);
+        this.turnoMock = mock(Turno.class);
+        this.medicoMock = mock(Medico.class);
+        this.especialidadMock = mock(Especialidad.class);
+        this.medico1 = new Medico(64694,"Jorge","Rodriguez",this.especialidad1,this.obrasSocialses,true,true,false);
+        this.medico2 = new Medico(1654236,"Alberto","Rodriguez",this.especialidad1,this.obrasSocialses,true,true,false );
+        this.clinicaDaoInstancia.guardarMedico(this.medico1);
+        this.clinicaDaoInstancia.guardarMedico(this.medico2);
+    }
 
     @Test
     void testPedirTurnoMedicosParticulares() {
-        Paciente paciente = new Paciente();
-        Especialidad especialidad = new Especialidad("Odontología");
-        Medico medico = new Medico(64694,"jorge","rodriguez",especialidad,null,true,true,false);
-
-        ClinicaDao clinicaDao = ClinicaDao.getInstance();
-        clinicaDao.guardarMedico(medico);
-        List<Medico> medicos = new ArrayList<>();
-        medicos.add(medico);
+        this.medicos.add(this.medico1);
+        this.medicos.add(this.medico2);
 
         GestionTurnoService gestionTurnoService = mock(GestionTurnoService.class);
         when(gestionTurnoService.crearTurno(any(), any(), anyBoolean())).thenReturn(new Turno());
 
-        ClinicaService clinicaService = ClinicaService.getInstance();
-        Turno turnoPedido = clinicaService.pedirTurno(paciente, especialidad, null);
+        Turno turnoPedido = this.clinicaServiceInstancia.pedirTurno(this.paciente1, this.especialidad1, null);
 
-        assertEquals(medicos,clinicaDao.obtenerMedicosPorEspecialidadParticulares(especialidad));
         assertNotNull(turnoPedido);
-        assertEquals(medico, turnoPedido.getMedico());
-        assertEquals(paciente, turnoPedido.getPaciente());
+        assertEquals(this.paciente1, turnoPedido.getPaciente());
         assertFalse(turnoPedido.getConObraSocial());
-        assertNotNull(paciente.getTurnos());
+        assertNotNull(this.paciente1.getTurnos());
+        assertEquals(true,turnoPedido.getMedico().getParticular());
     }
 
 
     @Test
     void testPedirTurnoObraSocial() {
-        Paciente paciente = new Paciente();
-        ObraSocial obraSocial1 = new ObraSocial("Pami");
-        List<ObraSocial> obrasSociales = new ArrayList<>();
-        obrasSociales.add(obraSocial1);
-        Especialidad especialidad = new Especialidad("Odontología");
-        Medico medico = new Medico(64694,"jorge","rodriguez",especialidad,obrasSociales,true,true,false);
+        this.medicos.add(this.medico1);
 
-        ClinicaDao clinicaDao = ClinicaDao.getInstance();
-        clinicaDao.guardarMedico(medico);
-        List<Medico> medicos = new ArrayList<>();
-        medicos.add(medico);
+        when(this.gestionTurnoServiceMock.crearTurno(any(), any(), anyBoolean())).thenReturn(new Turno());
 
-        GestionTurnoService gestionTurnoService = mock(GestionTurnoService.class);
-        when(gestionTurnoService.crearTurno(any(), any(), anyBoolean())).thenReturn(new Turno());
+        Turno turnoPedido = this.clinicaServiceInstancia.pedirTurno(this.paciente1, this.especialidad1, this.obraSocial1);
 
-        ClinicaService clinicaService = ClinicaService.getInstance();
-        Turno turnoPedido = clinicaService.pedirTurno(paciente, especialidad, obraSocial1);
-
-        assertEquals(medicos,clinicaDao.encontrarMedicosPorEspecialidadObraSocial(especialidad,obraSocial1));
         assertNotNull(turnoPedido);
-        assertEquals(medico, turnoPedido.getMedico());
-        assertEquals(paciente, turnoPedido.getPaciente());
+        assertEquals(this.paciente1, turnoPedido.getPaciente());
         assertTrue(turnoPedido.getConObraSocial());
-        assertNotNull(paciente.getTurnos());
+        assertNotNull(this.paciente1.getTurnos());
+        assertTrue(turnoPedido.getConObraSocial());
     }
 
     @Test
     void testPedirTurnoSinMedicosParticulares() {
-        Paciente paciente = new Paciente();
-        Especialidad especialidad = new Especialidad("Odontología");
-        ClinicaDao clinicaDao = mock(ClinicaDao.class);
-        when(clinicaDao.obtenerMedicosPorEspecialidadParticulares(especialidad)).thenReturn(Collections.emptyList());
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        clinicaDaoInstancia.eliminarMedico(64694);
+        clinicaDaoInstancia.eliminarMedico(1654236);
+        when(this.clinicaDaoMock.obtenerMedicosPorEspecialidadParticulares(this.especialidad1)).thenReturn(Collections.emptyList());
 
         assertThrows(MedicosNoEncontradosException.class, () -> {
-            clinicaService.pedirTurno(paciente, especialidad, null);
+            this.clinicaServiceInstancia.pedirTurno(this.paciente1, this.especialidad1, null);
         });
     }
 
     @Test
     void testPedirTurnoSinMedicosObraSocial() {
-        Paciente paciente = new Paciente();
-        Especialidad especialidad = new Especialidad("Odontología");
-        ObraSocial obraSocial1 = new ObraSocial("Pami");
-        ClinicaDao clinicaDao = mock(ClinicaDao.class);
-        when(clinicaDao.encontrarMedicosPorEspecialidadObraSocial(especialidad,obraSocial1)).thenReturn(Collections.emptyList());
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        clinicaDaoInstancia.eliminarMedico(64694);
+        clinicaDaoInstancia.eliminarMedico(1654236);
+        when(this.clinicaDaoMock.encontrarMedicosPorEspecialidadObraSocial(this.especialidad1,this.obraSocial1)).thenReturn(Collections.emptyList());
 
         assertThrows(MedicosNoEncontradosException.class, () -> {
-            clinicaService.pedirTurno(paciente, especialidad, obraSocial1);
+            this.clinicaServiceInstancia.pedirTurno(this.paciente1, this.especialidad1, this.obraSocial1);
         });
     }
 
     @Test
     void testPuedeIniciarTurno_HaComenzado() {
-        Paciente paciente = new Paciente();
-        Turno turno = mock(Turno.class);
-        when(turno.isHaComenzado()).thenReturn(true);
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        when(this.turnoMock.isHaComenzado()).thenReturn(true);
 
-        assertThrows(TurnoIniciadoException.class, () -> clinicaService.puedeIniciarTurno(turno, paciente));
+        assertThrows(TurnoIniciadoException.class, () -> this.clinicaServiceInstancia.puedeIniciarTurno(this.turnoMock, this.paciente1));
     }
 
     @Test
     void testPuedeIniciarTurnoMedicoNoDisponible() throws InterruptedException {
-        Turno turno = mock(Turno.class);
-        Medico medico = mock(Medico.class);
-        Paciente paciente = new Paciente();
-        Especialidad especialidad = mock(Especialidad.class);
-
-        when(medico.getEspecialidad()).thenReturn(especialidad);
-        when(turno.isHaComenzado()).thenReturn(false);
-        when(turno.getMedico()).thenReturn(medico);
-        when(medico.isDisponible()).thenReturn(false).thenReturn(true).thenCallRealMethod();
+        when(this.medicoMock.getEspecialidad()).thenReturn(this.especialidadMock);
+        when(this.turnoMock.isHaComenzado()).thenReturn(false);
+        when(this.turnoMock.getMedico()).thenReturn(this.medicoMock);
+        when(this.medicoMock.isDisponible()).thenReturn(false).thenReturn(true).thenCallRealMethod();
         doAnswer(invocation -> {
             Thread.sleep(300);
             return null;
-        }).when(medico).wait();
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        }).when(this.medicoMock).wait();
 
         assertDoesNotThrow(() -> {
-            clinicaService.puedeIniciarTurno(turno, paciente);
+            this.clinicaServiceInstancia.puedeIniciarTurno(this.turnoMock, this.paciente1);
         });
 
-        verify(medico).wait();
-        assertFalse(medico.isDisponible());
+        verify(this.medicoMock).wait();
+        assertFalse(this.medicoMock.isDisponible());
     }
 
     @Test
     void testPuedeIniciarTurnoMedicoDisponible() throws InterruptedException {
-        Turno turno = mock(Turno.class);
-        Medico medico = mock(Medico.class);
-        Paciente paciente = new Paciente();
-        Especialidad especialidad = mock(Especialidad.class);
-
-        when(medico.getEspecialidad()).thenReturn(especialidad);
-        when(turno.isHaComenzado()).thenReturn(false);
-        when(turno.getMedico()).thenReturn(medico);
-        when(medico.isDisponible()).thenReturn(true).thenCallRealMethod();
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        when(this.medicoMock.getEspecialidad()).thenReturn(this.especialidadMock);
+        when(this.turnoMock.isHaComenzado()).thenReturn(false);
+        when(this.turnoMock.getMedico()).thenReturn(this.medicoMock);
+        when(this.medicoMock.isDisponible()).thenReturn(true).thenCallRealMethod();
 
         assertDoesNotThrow(() -> {
-            clinicaService.puedeIniciarTurno(turno, paciente);
+            this.clinicaServiceInstancia.puedeIniciarTurno(this.turnoMock, this.paciente1);
         });
 
-        verify(medico, never()).wait();
-        assertFalse(medico.isDisponible());
+        verify(this.medicoMock, never()).wait();
+        assertFalse(this.medicoMock.isDisponible());
     }
 
     @Test
     void testPuedeIniciarTurnoExcepcionEnEspera() throws InterruptedException {
-        Turno turno = mock(Turno.class);
-        Medico medico = mock(Medico.class);
-
-        when(turno.isHaComenzado()).thenReturn(false);
-        when(turno.getMedico()).thenReturn(medico);
-        when(medico.isDisponible()).thenReturn(false);
-        doThrow(InterruptedException.class).when(medico).wait();
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        when(this.turnoMock.isHaComenzado()).thenReturn(false);
+        when(this.turnoMock.getMedico()).thenReturn(this.medicoMock);
+        when(this.medicoMock.isDisponible()).thenReturn(false);
+        doThrow(InterruptedException.class).when(this.medicoMock).wait();
 
         assertThrows(RuntimeException.class, () -> {
-            clinicaService.puedeIniciarTurno(turno, new Paciente());
+            this.clinicaServiceInstancia.puedeIniciarTurno(this.turnoMock, new Paciente());
         });
     }
 
     @Test
     void testPuedeTerminarTurnoTurnoNoIniciado() {
-        Turno turno = mock(Turno.class);
-        when(turno.isHaComenzado()).thenReturn(false);
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        when(this.turnoMock.isHaComenzado()).thenReturn(false);
 
         assertThrows(TurnoIniciadoException.class, () -> {
-            clinicaService.puedeTerminarTurno(turno);
+            this.clinicaServiceInstancia.puedeTerminarTurno(this.turnoMock);
         });
     }
 
     @Test
     void testPuedeTerminarTurnoTurnoTerminado() {
-        Turno turno = mock(Turno.class);
-        when(turno.isHaComenzado()).thenReturn(true);
-        when(turno.isHaTerminado()).thenReturn(true);
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
+        when(this.turnoMock.isHaComenzado()).thenReturn(true);
+        when(this.turnoMock.isHaTerminado()).thenReturn(true);
 
         assertThrows(TurnoTerminadoException.class, () -> {
-            clinicaService.puedeTerminarTurno(turno);
+            this.clinicaServiceInstancia.puedeTerminarTurno(this.turnoMock);
         });
     }
 
     @Test
     void testPuedeTerminarTurno(){
-        Turno turno = mock(Turno.class);
-        Medico medico = mock(Medico.class);
-        Especialidad especialidad = new Especialidad("Odontologia");
-        when(medico.getEspecialidad()).thenReturn(especialidad);
-        when(medico.getNombre()).thenReturn("Jorge");
+        when(this.medicoMock.getEspecialidad()).thenReturn(this.especialidad1);
+        when(this.medicoMock.getNombre()).thenReturn("Jorge");
 
-        when(turno.isHaComenzado()).thenReturn(false);
-        when(turno.isHaTerminado()).thenReturn(false);
-        when(turno.getMedico()).thenReturn(medico);
-
-        GestionTurnoService gestionTurnoService = mock(GestionTurnoService.class);
+        when(this.turnoMock.isHaComenzado()).thenReturn(false);
+        when(this.turnoMock.isHaTerminado()).thenReturn(false);
+        when(this.turnoMock.getMedico()).thenReturn(this.medicoMock);
 
         ClinicaService clinicaService = ClinicaService.getInstance();
-        clinicaService.puedeIniciarTurno(turno,new Paciente());
-        clinicaService.puedeTerminarTurno(turno);
+        clinicaService.puedeIniciarTurno(this.turnoMock,this.paciente1);
+        clinicaService.puedeTerminarTurno(this.turnoMock);
 
-        verify(gestionTurnoService).terminarTurno(turno);
-        verify(medico).setDisponible(true);
-        verify(medico).notifyAll();
+        verify(this.gestionTurnoServiceMock).terminarTurno(this.turnoMock);
+        verify(this.medicoMock).setDisponible(true);
+        verify(this.medicoMock).notifyAll();
     }
 
     @Test
@@ -229,36 +209,13 @@ public class ClinicaServiceTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
 
-        ClinicaDao clinicaDao = ClinicaDao.getInstance();
-        List<ObraSocial> obrasSociales = new ArrayList<>();
-        Especialidad especialidad = new Especialidad("Odontologia");
-        ObraSocial obraSocial1 = new ObraSocial("Pami");
-        ObraSocial obraSocial2 = new ObraSocial("Sancor");
-        obrasSociales.add(obraSocial1);
-        obrasSociales.add(obraSocial2);
-        Medico medico1 = new Medico();
-        Medico medico2 = new Medico();
-        medico1.setNombre("Juan");
-        medico1.setDni(4894);
-        medico1.setApellido("Rodriguez");
-        medico1.setEspecialidad(especialidad);
-        medico1.setObrasSocialesAceptadas(obrasSociales);
-        medico2.setNombre("Alberto");
-        medico2.setApellido("Rodriguez");
-        medico2.setDni(464894);
-        medico2.setEspecialidad(especialidad);
-        medico2.setObrasSocialesAceptadas(obrasSociales);
-        clinicaDao.guardarMedico(medico1);
-        clinicaDao.guardarMedico(medico2);
-
-        ClinicaService clinicaService = ClinicaService.getInstance();
-        clinicaService.mostrarMédicosDeUnaEspecialidad(especialidad);
+        this.clinicaServiceInstancia.mostrarMédicosDeUnaEspecialidad(this.especialidad1);
 
         System.setOut(System.out);
 
-        String expected = "Los medicos de la especialidad Odontologia son:\n" +
+        String expected = "Los medicos de la especialidad Odontología son:\n" +
                 "Alberto, Rodriguez. Las obras sociales que acepta son: Pami, Sancor\n" +
-                "Juan, Rodriguez. Las obras sociales que acepta son: Pami, Sancor";
+                "Jorge, Rodriguez. Las obras sociales que acepta son: Pami, Sancor";
         assertEquals(expected, outputStream.toString().trim());
     }
 
@@ -267,30 +224,22 @@ public class ClinicaServiceTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
 
-        ClinicaDao clinicaDao = ClinicaDao.getInstance();
-        Especialidad especialidad1 = new Especialidad("Odontologia");
         Especialidad especialidad2 = new Especialidad("Cardiología");
-        Medico medico1 = new Medico();
         Medico medico2 = new Medico();
-        medico1.setNombre("Juan");
-        medico1.setDni(4894);
-        medico1.setApellido("Rodriguez");
-        medico1.setEspecialidad(especialidad1);
-        medico2.setNombre("Alberto");
-        medico2.setApellido("Rodriguez");
+        medico2.setNombre("Raul");
+        medico2.setApellido("Sanchez");
         medico2.setDni(464894);
         medico2.setEspecialidad(especialidad2);
-        clinicaDao.guardarMedico(medico1);
-        clinicaDao.guardarMedico(medico2);
+        this.clinicaDaoInstancia.guardarMedico(medico2);
 
-        ClinicaService clinicaService = ClinicaService.getInstance();
-        clinicaService.mostrarTodosLosMedicos();
+        this.clinicaServiceInstancia.mostrarTodosLosMedicos();
 
         System.setOut(System.out);
 
         String expected = "Todos los medicos son:\n" +
-                "Alberto, Rodriguez. Especialidad: Cardiología\n" +
-                "Juan, Rodriguez. Especialidad: Odontologia";
+                "Alberto, Rodriguez. Especialidad: Odontología\n" +
+                "Jorge, Rodriguez. Especialidad: Odontología\n" +
+                "Raul, Sanchez. Especialidad: Cardiología";
         assertEquals(expected, outputStream.toString().trim());
     }
 

@@ -12,7 +12,7 @@ public class ClinicaDao {
 
     private Map<Integer, Paciente> pacientes;
     private Map<Integer, Medico> medicos;
-    private Map<Integer, Especialidad> especialidades;
+    private Map<String, Especialidad> especialidades;
     private static ClinicaDao instancia;
 
     private ClinicaDao() {
@@ -66,6 +66,10 @@ public class ClinicaDao {
     public synchronized void eliminarPaciente(int dni) {
         this.pacientes.remove(dni);
     }
+
+    public synchronized List<Paciente> obtenerPacientes(){
+        return new ArrayList<>(this.pacientes.values());
+    }
 //------------------------------------------------------------//
 // ----------------------------Medico--------------------------//
     public synchronized void guardarMedico(Medico medico) {
@@ -110,7 +114,7 @@ public class ClinicaDao {
     }
 //------------------------------------------------------------//
 // ----------------------------Especialidad--------------------------//
-    public Especialidad obtenerEspecialidad(String nombre) {
+    public synchronized Especialidad obtenerEspecialidad(String nombre) {
         for (Especialidad especialidad : this.especialidades.values()) {
             if (especialidad.getNombre().equalsIgnoreCase(nombre)) {
                 return especialidad;
@@ -119,11 +123,23 @@ public class ClinicaDao {
         return null;
     }
 
-    public void guardarEspecialidad(int clave, Especialidad especialidad) {
-        especialidades.put(clave, especialidad);
+    public synchronized void guardarEspecialidad(Especialidad especialidad) {
+        String nombre = especialidad.getNombre();
+        this.especialidades.put(nombre, especialidad);
     }
 
+    public synchronized void actualizarEspecialidad(Especialidad especialidad) {
+        String nombre = especialidad.getNombre();
+        this.especialidades.put(nombre, especialidad);
+    }
 
+    public synchronized void eliminarEspecialidad(Especialidad especialidad) {
+        String nombre = especialidad.getNombre();
+        this.especialidades.remove(nombre);
+    }
 
-
+    public synchronized List<Especialidad> obtenerEspecialidades(){
+        return new ArrayList<>(this.especialidades.values());
+    }
+//------------------------------------------------------------//
 }
